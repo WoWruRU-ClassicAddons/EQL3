@@ -176,7 +176,7 @@ function QuestWatch_Update()
 				watchText = getglobal("EQL3_QuestWatchLine"..watchTextIndex);
 				if(watchText ~= nil and questLogTitleText ~= nil) then
 					if(QuestlogOptions[EQL3_Player].ShowQuestLevels == 1) then
-						if (tempTag ~= NIL) then
+						if (tempTag ~= nil) then
 							tempLevel = tempLevel.."+";
 						end
 						watchText:SetText("  ".."["..tempLevel.."] "..questLogTitleText);
@@ -221,7 +221,11 @@ function QuestWatch_Update()
 									if (QuestlogOptions[EQL3_Player].UseTrackerListing == 1) then -- Tracker Listing
 										watchText:SetText("    "..EQL3_TrackerLists[QuestlogOptions[EQL3_Player].TrackerList][markerID]..") "..text);
 									else
-										watchText:SetText("    "..EQL3_TrackerSymbols[QuestlogOptions[EQL3_Player].TrackerSymbol].." "..text);
+										if ( finished ) then
+											watchText:SetText("    X "..text);
+										else
+											watchText:SetText("    "..EQL3_TrackerSymbols[QuestlogOptions[EQL3_Player].TrackerSymbol].." "..text);
+										end
 									end
 								else
 									watchText:SetText("    "..text);
@@ -239,7 +243,7 @@ function QuestWatch_Update()
 																 b=QuestlogOptions[EQL3_Player].Color["ObjectiveComplete"].b };
 								else
 									tempColor = {r=0.8, g=0.8, b=0.8};
-									tempColor2 = {r=HIGHLIGHT_FONT_COLOR.r, g=HIGHLIGHT_FONT_COLOR.g, b=HIGHLIGHT_FONT_COLOR.b};
+									tempColor2 = {r=0.75, g=1.0, b=0.81};
 								end
 								
 								
@@ -294,49 +298,93 @@ function QuestWatch_Update()
 				
 				-- Brighten the quest title if all the quest objectives were met
 				watchText = getglobal("EQL3_QuestWatchLine"..watchTextIndex-markerID-1);
-				
-				if (QuestlogOptions[EQL3_Player].CustomHeaderColor == 1) then
-					if (QuestlogOptions[EQL3_Player].FadeHeaderColor == 1) then
-						if ( isComplete or objectivesCompleted == numObjectives ) then
-								tempColor = {	r=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].r,
-															g=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].g,
-															b=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].b };
+				if (watchText ~= nil) then
+					if (QuestlogOptions[EQL3_Player].CustomHeaderColor == 1) then
+						if (QuestlogOptions[EQL3_Player].FadeHeaderColor == 1) then
+							if ( isComplete or objectivesCompleted == numObjectives ) then
+									tempColor = {	r=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].r,
+																g=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].g,
+																b=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].b };
+							else
+									tempColor3 = {r=QuestlogOptions[EQL3_Player].Color["HeaderEmpty"].r,
+																g=QuestlogOptions[EQL3_Player].Color["HeaderEmpty"].g,
+																b=QuestlogOptions[EQL3_Player].Color["HeaderEmpty"].b };
+																
+									tempColor2 = {r=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].r,
+																g=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].g,
+																b=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].b };
+									tempColor = EQL3_FadeColors(tempColor3, tempColor2, tempDone, tempObj);
+							end
 						else
-								tempColor3 = {r=QuestlogOptions[EQL3_Player].Color["HeaderEmpty"].r,
-															g=QuestlogOptions[EQL3_Player].Color["HeaderEmpty"].g,
-															b=QuestlogOptions[EQL3_Player].Color["HeaderEmpty"].b };
-															
-								tempColor2 = {r=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].r,
-															g=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].g,
-															b=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].b };
-								tempColor = EQL3_FadeColors(tempColor3, tempColor2, tempDone, tempObj);
+							if ( isComplete or objectivesCompleted == numObjectives ) then
+									tempColor = {	r=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].r,
+																g=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].g,
+																b=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].b };
+							else
+									tempColor = {	r=QuestlogOptions[EQL3_Player].Color["HeaderEmpty"].r,
+																g=QuestlogOptions[EQL3_Player].Color["HeaderEmpty"].g,
+																b=QuestlogOptions[EQL3_Player].Color["HeaderEmpty"].b };
+							end
 						end
+						watchText:SetTextColor(tempColor.r, tempColor.g, tempColor.b);
 					else
-						if ( isComplete or objectivesCompleted == numObjectives ) then
-								tempColor = {	r=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].r,
-															g=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].g,
-															b=QuestlogOptions[EQL3_Player].Color["HeaderComplete"].b };
+						if ( isComplete or  objectivesCompleted == numObjectives ) then
+							local playerLevel = UnitLevel("player");
+							local colorHeader;
+							if (level - playerLevel >= 10) then
+								colorHeader = {r = 1.00, g = 0.00, b = 0.00};
+							elseif (level - playerLevel >= 0) then
+								colorHeader = {r = 1.00, g = ((10.00 - level + playerLevel)/10), b = 0.00};
+							elseif ( playerLevel - level < GetQuestGreenRange() ) then
+								colorHeader = {r = ((9.00 + level - playerLevel)/10), g = 1.00, b = 0.00};
+							elseif ( playerLevel - level == GetQuestGreenRange() ) then
+								colorHeader = {r = 0.50, g = 1.00, b = 0.50};
+							else
+								colorHeader = {r = 0.75, g = 0.75, b = 0.75};
+							end
+							watchText:SetTextColor(colorHeader.r, colorHeader.g, colorHeader.b);
 						else
-								tempColor = {	r=QuestlogOptions[EQL3_Player].Color["HeaderEmpty"].r,
-															g=QuestlogOptions[EQL3_Player].Color["HeaderEmpty"].g,
-															b=QuestlogOptions[EQL3_Player].Color["HeaderEmpty"].b };
+							local playerLevel = UnitLevel("player");
+							local colorHeader;
+							if (level - playerLevel >= 10) then
+								colorHeader = {r = 1.00, g = 0.00, b = 0.00};
+							elseif (level - playerLevel >= 0) then
+								colorHeader = {r = 1.00, g = ((10.00 - level + playerLevel)/10), b = 0.00};
+							elseif ( playerLevel - level < GetQuestGreenRange() ) then
+								colorHeader = {r = ((9.00 + level - playerLevel)/10), g = 1.00, b = 0.00};
+							elseif ( playerLevel - level == GetQuestGreenRange() ) then
+								colorHeader = {r = 0.50, g = 1.00, b = 0.50};
+							else
+								colorHeader = {r = 0.75, g = 0.75, b = 0.75};
+							end
+							watchText:SetTextColor(colorHeader.r, colorHeader.g, colorHeader.b);
 						end
-					end
-					watchText:SetTextColor(tempColor.r, tempColor.g, tempColor.b);
-				else
-					if ( isComplete or  objectivesCompleted == numObjectives ) then
-							watchText:SetTextColor(NORMAL_FONT_COLOR.r, NORMAL_FONT_COLOR.g, NORMAL_FONT_COLOR.b);
-					else
-							watchText:SetTextColor(0.75, 0.61, 0);
 					end
 				end
-				
-				
-			
 			end
-			
 		end
 	end
+--[[
+			local playerLevel = UnitLevel("player");
+			if ( isHeader ) then
+				colorHeader = QuestDifficultyColor["header"];
+			elseif (level - playerLevel >= 10) then
+				colorHeader = {r = 1.00, g = 0.00, b = 0.00};
+			elseif (level - playerLevel >= 0) then
+				colorHeader = {r = 1.00, g = ((10.00 - level + playerLevel)/10), b = 0.00};
+			elseif ( playerLevel - level < GetQuestGreenRange() ) then
+				colorHeader = {r = ((9.00 + level - playerLevel)/10), g = 1.00, b = 0.00};
+			elseif ( playerLevel - level == GetQuestGreenRange() ) then
+				colorHeader = {r = 0.50, g = 1.00, b = 0.50};
+			else
+				colorHeader = {r = 0.75, g = 0.75, b = 0.75};
+			end
+
+--]]
+
+
+
+
 
 	-- Set tracking indicator
 	if ( GetNumQuestWatches() > 0 ) then
@@ -476,6 +524,7 @@ end
 
 function EQL3_IsQuestWatched(questIndex)
 	local questName, level = GetQuestLogTitle(questIndex);
+	if not (questName) then return false end
 	local questLogHeader, isHeader, tempId;
 	
 	isHeader = false;

@@ -1,5 +1,6 @@
 -- Log Script file for Extended Questlog 3.5
 -- Copyright © 2006 Daniel Rehn
+-- Edited by Basara HUE!
 
 function EQL3_Maximize()
 	EQL3_QuestLogFrameCloseButton:Hide();
@@ -65,7 +66,7 @@ function EQL_QuestLog_OnEvent(event)
 	if (event == "VARIABLES_LOADED") then
 		EQL3_Player = UnitName("player").."-"..GetRealmName();
 		
-		DEFAULT_CHAT_FRAME:AddMessage("Extended QuestLog "..EQL3_QUESTLOG_VERSION.." Loaded for "..UnitName("player").. " of "..GetRealmName()..".", 1, 1, 1, 1);
+		DEFAULT_CHAT_FRAME:AddMessage("Extended QuestLog "..EQL3_QUESTLOG_VERSION.." Loaded for "..UnitName("player").. " of "..GetRealmName()..". Courtesy of Sir Basara the Dragonslayer", 1, 1, 1, 1);
 		
 		if(QuestlogOptions == nil) then
 			QuestlogOptions = {};
@@ -442,7 +443,7 @@ function QuestLog_Update()
 				
 				if(QuestlogOptions[EQL3_Player].ShowQuestLevels == 1) then
 					tempLevel = level;
-					if (questTag ~= NIL) then
+					if (questTag ~= nil) then
 						tempLevel = tempLevel.."+";
 					end
 					questLogTitle:SetText("  ".."["..tempLevel.."] "..questLogTitleText);
@@ -528,8 +529,16 @@ function QuestLog_Update()
 			local playerLevel = UnitLevel("player");
 			if ( isHeader ) then
 				color = QuestDifficultyColor["header"];
+			elseif (level - playerLevel >= 10) then
+				color = {r = 1.00, g = 0.00, b = 0.00};
+			elseif (level - playerLevel >= 0) then
+				color = {r = 1.00, g = ((10.00 - level + playerLevel)/10), b = 0.00};
+			elseif ( playerLevel - level < GetQuestGreenRange() ) then
+				color = {r = ((9.00 + level - playerLevel)/10), g = 1.00, b = 0.00};
+			elseif ( playerLevel - level == GetQuestGreenRange() ) then
+				color = {r = 0.50, g = 1.00, b = 0.50};
 			else
-				color = GetDifficultyColor(level);
+				color = {r = 0.75, g = 0.75, b = 0.75};
 			end
 			questTitleTag:SetTextColor(color.r, color.g, color.b);
 			questLogTitle:SetTextColor(color.r, color.g, color.b);
@@ -1050,7 +1059,7 @@ function GetQuestLogTitle(questIndex)
 		if ( not QuestLevel_Quest2Level[questLogTitleText] ) then
 			local queststorage = "";
 			queststorage = QuestLevel_StorageSet(queststorage, "levelmin", level);
-			if (questTag ~= NIL) then
+			if (questTag ~= nil) then
 				queststorage = QuestLevel_StorageSet(queststorage, "elite", "x");
 			end
 			QuestLevel_Quest2Level[questLogTitleText] = queststorage;
@@ -1070,7 +1079,7 @@ function GetQuestLogTitle(questIndex)
 			if (levelmax < level) then
 				queststorage = QuestLevel_StorageSet(queststorage, "levelmax", level);
 			end
-			if (questTag ~= NIL and QuestLevel_StorageGet(queststorage, "elite") == nil) then
+			if (questTag ~= nil and QuestLevel_StorageGet(queststorage, "elite") == nil) then
 				queststorage = QuestLevel_StorageSet(queststorage, "elite", "");
 			end
 			QuestLevel_Quest2Level[questLogTitleText] = queststorage;
